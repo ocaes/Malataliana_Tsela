@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Malataliana-Tsela | Basotho Memory Game</title>
+
+<style>
+
+body{
+font-family:Arial;
+text-align:center;
+color:white;
+margin:0;
+background:linear-gradient(#0b1a33,#3a2d1a);
+}
+
+h1{
+margin-top:20px;
+}
+
+.board{
+margin-top:30px;
+}
+
+.row{
+display:flex;
+justify-content:center;
+flex-wrap:wrap;
+}
+
+.stone{
+width:60px;
+height:60px;
+border-radius:50%;
+background:radial-gradient(#777,#333);
+margin:6px;
+display:flex;
+align-items:center;
+justify-content:center;
+cursor:pointer;
+font-size:12px;
+box-shadow:3px 4px 8px rgba(0,0,0,0.5);
+}
+
+.grain{
+background:radial-gradient(#ffd34d,#b8860b);
+}
+
+.empty{
+background:#bbb;
+}
+
+.hidden{
+background:#2a2a2a;
+}
+
+#dialogue{
+margin-top:25px;
+font-size:20px;
+min-height:50px;
+}
+
+button{
+padding:10px 18px;
+margin:5px;
+border:none;
+border-radius:6px;
+font-size:16px;
+background:#4CAF50;
+color:white;
+cursor:pointer;
+}
+
+button:hover{
+background:#66bb6a;
+}
+
+.panel{
+margin-top:15px;
+}
+
+.info{
+max-width:700px;
+margin:auto;
+margin-top:10px;
+font-size:14px;
+color:#ddd;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>Malataliana-Tsela</h1>
+<p>Traditional Basotho Memory Game</p>
+
+<div class="info">
+A cultural game played by Basotho children before sleep using stones.
+Train your memory by remembering the order of stones and emptying all cooking pots.
+</div>
+
+<div class="board">
+<div class="row" id="mainRow"></div>
+<div class="row" id="sideRow"></div>
+</div>
+
+<div id="dialogue">Press Start Game</div>
+
+<div class="panel">
+Score: <span id="score">0</span> |
+Pots Cleared: <span id="pots">0</span>/10 |
+Level: <span id="level">1</span>
+</div>
+
+<div class="panel">
+<button onclick="startGame()">Start Game</button>
+<button onclick="restartGame()">Restart</button>
+<button onclick="toggleLanguage()">Sesotho / English</button>
+</div>
+
+<script>
+
+let cleared=0
+let stage=0
+let score=0
+let level=1
+let language="sesotho"
+
+const mainRow=document.getElementById("mainRow")
+const sideRow=document.getElementById("sideRow")
+const dialogue=document.getElementById("dialogue")
+
+function speak(text){
+
+let msg=new SpeechSynthesisUtterance(text)
+msg.lang="st-ZA"
+speechSynthesis.speak(msg)
+
+}
+
+function createBoard(){
+
+mainRow.innerHTML=""
+sideRow.innerHTML=""
+
+for(let i=0;i<12;i++){
+
+let stone=document.createElement("div")
+stone.className="stone hidden"
+stone.dataset.index=i
+stone.onclick=stoneClick
+
+mainRow.appendChild(stone)
+
+}
+
+for(let i=0;i<10;i++){
+
+let grain=document.createElement("div")
+grain.className="stone grain"
+grain.dataset.index=i
+
+sideRow.appendChild(grain)
+
+}
+
+}
+
+function startGame(){
+
+cleared=0
+stage=0
+score=0
+
+createBoard()
+
+setText("who")
+
+}
+
+function restartGame(){
+
+startGame()
+
+}
+
+function setText(type){
+
+if(language=="sesotho"){
+
+if(type=="who") dialogue.innerHTML="X: Eo ke mang?"
+if(type=="leader") dialogue.innerHTML="Y: Malataliana-tsela"
+if(type=="brother") dialogue.innerHTML="Y: Ngoan’a rae e moholo"
+if(type=="empty") dialogue.innerHTML="Y: Tlhatlolla, ore qiti!"
+
+}
+
+else{
+
+if(type=="who") dialogue.innerHTML="Leader: Who is this?"
+if(type=="leader") dialogue.innerHTML="Player: Malataliana-tsela"
+if(type=="brother") dialogue.innerHTML="Player: The father's eldest child"
+if(type=="empty") dialogue.innerHTML="Player: Remove the grain from the pot!"
+
+}
+
+}
+
+function stoneClick(e){
+
+let index=parseInt(e.target.dataset.index)
+
+if(stage==0){
+
+if(index==0){
+
+setText("leader")
+stage=1
+score+=5
+
+}else{
+
+lose()
+
+}
+
+}
+
+else if(stage==1){
+
+if(index==1){
+
+setText("brother")
+stage=2
+score+=5
+
+}else{
+
+lose()
+
+}
+
+}
+
+else{
+
+let potIndex=index-2
+
+if(potIndex==cleared){
+
+removeGrain(potIndex)
+
+setText("empty")
+
+cleared++
+score+=10
+
+stage=0
+
+updatePanel()
+
+if(cleared==10){
+
+win()
+
+}
+
+}else{
+
+lose()
+
+}
+
+}
+
+}
+
+function removeGrain(i){
+
+let grains=document.querySelectorAll(".grain")
+
+grains[i].classList.remove("grain")
+grains[i].classList.add("empty")
+
+}
+
+function updatePanel(){
+
+document.getElementById("score").innerHTML=score
+document.getElementById("pots").innerHTML=cleared
+document.getElementById("level").innerHTML=level
+
+}
+
+function win(){
+
+dialogue.innerHTML="🎉 You cleared all the pots!"
+
+score+=50
+level++
+
+updatePanel()
+
+}
+
+function lose(){
+
+dialogue.innerHTML="❌ Memory mistake. Game Over."
+
+score=0
+cleared=0
+
+updatePanel()
+
+}
+
+function toggleLanguage(){
+
+if(language=="sesotho") language="english"
+else language="sesotho"
+
+}
+
+createBoard()
+
+</script>
+
+</body>
+</html>
